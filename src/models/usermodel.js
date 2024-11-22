@@ -32,6 +32,6 @@ const userSchema = new mongoos.Schema({
   verificationTokenExpire: Date,
 });
 
-const User = mongoos.model("User", userSchema);
+const User = mongoos.models.users || mongoos.model("users", userSchema);
 
 export default User;
