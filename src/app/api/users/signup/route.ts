@@ -1,27 +1,48 @@
 import { connect } from "@/dbConfig/dbConfig";
-import User from "@/models/usermodel";
+import User from "@/models/userModel";
+import IUser from "@/models/userModel";
 import { NextRequest, NextResponse } from "next/server";
+import bcryptjs from "bcryptjs";
+import { sendMail } from "@/helper/mailer";
 
 connect();
 
 export async function post(request: NextRequest) {
   try {
-    if (!request.body) {
+    const requestBody = await request.json();
+    const { username, email, password } = requestBody;
+    //validation
+    console.log(requestBody);
+
+    const user = await User.findOne({ email });
+
+    if (User) {
       return NextResponse.json(
-        { error: "Request body is null" },
+        { error: "Please fill all fields" },
         { status: 400 }
       );
     }
-    const body = await request.json();
 
-    const user = new User({
-      email: body.email,
-      password: body.password,
+    const salt = await bcryptjs.genSalt(10);
+    const hashedPassword = await bcryptjs.hash(password, salt);
+
+    const newUser = new IUser({
+      username,
+      email,
+      password: hashedPassword,
     });
 
-    await user.save();
+    const savedUser = await newUser.save();
+    console.log(savedUser);
 
-    return NextResponse.redirect("/login");
+    //send verification email
+    await sendMail(email, "VERIFY", savedUser._id);
+
+    return NextResponse.json({
+      message: "User created",
+      success: true,
+      savedUser,
+    });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
