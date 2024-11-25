@@ -1,8 +1,23 @@
+import { verify } from "crypto";
 import nodemailer from "nodemailer";
+import User from "@/models/userModel";
+import bccryptjs from "bcryptjs";
 
 export const sendMail = async (email: any, emailType: any, userId: any) => {
   try {
     //TODO: Implement the logic to send email
+    const hashedToken = await bccryptjs.hash(userId.toString(), 10);
+    if (emailType === "VERIFY") {
+      await User.findByIdAndUpdate(userId, {
+        verificationToken: hashedToken,
+        verificationTokenExpires: Date.now() + 3600000,
+      });
+    } else if (emailType === "RESET") {
+      await User.findByIdAndUpdate(userId, {
+        forgotPasswordToken: hashedToken,
+        verificationTokenExpire: Date.now() + 3600000,
+      });
+    }
 
     const transporter = nodemailer.createTransport({
       host: "smtp.ethereal.email",
