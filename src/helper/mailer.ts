@@ -18,26 +18,26 @@ export const sendMail = async (email: any, emailType: any, userId: any) => {
         verificationTokenExpire: Date.now() + 3600000,
       });
     }
-
-    const transporter = nodemailer.createTransport({
-      host: "smtp.ethereal.email",
-      port: 587,
-      secure: false, // true for port 465, false for other ports
+    // .............
+    // Looking to send emails in production? Check out our Email API/SMTP product!
+    var transport = nodemailer.createTransport({
+      host: "sandbox.smtp.mailtrap.io",
+      port: 2525,
       auth: {
-        user: "maddison53@ethereal.email",
-        pass: "jn7jnAPss4f63QBp6D",
+        user: "51e5512658a48d",
+        pass: "09e3121955d535",
       },
     });
-
-    const mailOption = await transporter.sendMail({
+    // .................
+    const mailOption = await transport.sendMail({
       from: "markadavi3719@gmail.com", // sender address
       to: email, // list of receivers
       subject:
         emailType === "VERIFY" ? "Verify your email" : "Reset your Passowrd", // Subject line
-      html: "<b>Hello world?</b>", // html body
+      html: "<p>click <a href='${process.env.DOMAIN}/verifyemail?token=${hashedToken}'>here<a/>to {emailType === 'VERIFY' ? 'verify your email':'reset your password'}</p>", // html body
     });
 
-    const mailResponse = await transporter.sendMail(mailOption);
+    const mailResponse = await transport.sendMail(mailOption);
     console.log("Message sent: %s", mailResponse.messageId);
     //return mailResponse;
   } catch (error) {
